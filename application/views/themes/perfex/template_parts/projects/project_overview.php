@@ -30,22 +30,17 @@
                 </p>
             </div>
         <?php } ?>
-        <?php
-        // Verifica se o usuário é um cliente logado
-        if (isset($contact) && $contact->is_primary == 1) {
-            if (($project->billing_type == 1 || $project->billing_type == 2) && $project->settings->view_finance_overview == 1) {
-                echo '<div class="project-cost tw-flex tw-space-x-4">';
-                if ($project->billing_type == 1) {
-                    echo '<p class="bold">' . _l('project_total_cost') . '</p>';
-                    echo '<p>' . e(app_format_money($project->project_cost, $currency)) . '</p>';
-                } else {
-                    echo '<p class="bold">' . _l('project_rate_per_hour') . '</p>';
-                    echo '<p>' . e(app_format_money($project->project_rate_per_hour, $currency)) . '</p>';
-                }
-                echo '</div>';
+        <?php if (($project->billing_type == 1 || $project->billing_type == 2) && $project->settings->view_finance_overview == 1) {
+            echo '<div class="project-cost tw-flex tw-space-x-4">';
+            if ($project->billing_type == 1) {
+                echo '<p class="bold">' . _l('project_total_cost') . '</p>';
+                echo '<p>' . e(app_format_money($project->project_cost, $currency)) . '</p>';
+            } else {
+                echo '<p class="bold">' . _l('project_rate_per_hour') . '</p>';
+                echo '<p>' . e(app_format_money($project->project_rate_per_hour, $currency)) . '</p>';
             }
-        }
-        ?>
+            echo '</div>';
+        } ?>
         <div class="tw-flex tw-space-x-4">
             <p class="bold">
                 <?= _l('project_status'); ?>
@@ -193,62 +188,48 @@
                     <hr />
                     <?php
                     if ($project->billing_type == 3 || $project->billing_type == 2) { ?>
-                        <?php if (isset($contact)) { ?>
-                            <div class="row">
-                                <?php if ($contact->is_primary == 1) { ?>
-                                    <!-- Contato Principal vê todas as informações -->
-                                    <div class="col-md-3">
-                                        <p class="tw-mb-0 text-muted">
-                                            <?= _l('project_overview_logged_hours'); ?>
-                                            <span
-                                                class="bold"><?= e(seconds_to_time_format($this->projects_model->total_logged_time($project->id))); ?></span>
-                                        </p>
-                                        <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
-                                            <?= e(app_format_money($data['total_money'], $currency)); ?>
-                                        </p>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <p class="text-info tw-mb-0">
-                                            <?= _l('project_overview_billable_hours'); ?>
-                                            <span
-                                                class="bold"><?= e(seconds_to_time_format($this->projects_model->data_billable_time($project->id)['logged_time'])); ?></span>
-                                        </p>
-                                        <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
-                                            <?= e(app_format_money($this->projects_model->data_billable_time($project->id)['total_money'], $currency)); ?>
-                                        </p>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <p class="text-success tw-mb-0">
-                                            <?= _l('project_overview_billed_hours'); ?>
-                                            <span
-                                                class="bold"><?= e(seconds_to_time_format($this->projects_model->data_billed_time($project->id)['logged_time'])); ?></span>
-                                        </p>
-                                        <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
-                                            <?= e(app_format_money($this->projects_model->data_billed_time($project->id)['total_money'], $currency)); ?>
-                                        </p>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <p class="text-danger tw-mb-0">
-                                            <?= _l('project_overview_unbilled_hours'); ?>
-                                            <span
-                                                class="bold"><?= e(seconds_to_time_format($this->projects_model->data_unbilled_time($project->id)['logged_time'])); ?></span>
-                                        </p>
-                                        <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
-                                            <?= e(app_format_money($this->projects_model->data_unbilled_time($project->id)['total_money'], $currency)); ?>
-                                        </p>
-                                    </div>
-                                <?php } else { ?>
-                                    <!-- Outros Contatos só veem as Horas Registradas -->
-                                    <div class="col-md-12">
-                                        <p class="tw-mb-0 text-muted">
-                                            <?= _l('project_overview_logged_hours'); ?>
-                                            <span
-                                                class="bold"><?= e(seconds_to_time_format($this->projects_model->total_logged_time($project->id))); ?></span>
-                                        </p>
-                                    </div>
-                                <?php } ?>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <?php $data = $this->projects_model->total_logged_time_by_billing_type($project->id); ?>
+                                <p class="tw-mb-0 text-muted">
+                                    <?= _l('project_overview_logged_hours'); ?>
+                                    <span class="bold"><?= e($data['logged_time']); ?></span>
+                                </p>
+                                <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
+                                    <?= e(app_format_money($data['total_money'], $currency)); ?>
+                                </p>
                             </div>
-                        <?php } ?>
+                            <div class="col-md-3">
+                                <?php $data = $this->projects_model->data_billable_time($project->id); ?>
+                                <p class="text-info tw-mb-0">
+                                    <?= _l('project_overview_billable_hours'); ?>
+                                    <span class="bold"><?= e($data['logged_time']) ?></span>
+                                </p>
+                                <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
+                                    <?= e(app_format_money($data['total_money'], $currency)); ?>
+                                </p>
+                            </div>
+                            <div class="col-md-3">
+                                <?php $data = $this->projects_model->data_billed_time($project->id); ?>
+                                <p class="text-success tw-mb-0">
+                                    <?= _l('project_overview_billed_hours'); ?>
+                                    <span class="bold"><?= e($data['logged_time']); ?></span>
+                                </p>
+                                <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
+                                    <?= e(app_format_money($data['total_money'], $currency)); ?>
+                                </p>
+                            </div>
+                            <div class="col-md-3">
+                                <?php $data = $this->projects_model->data_unbilled_time($project->id); ?>
+                                <p class="text-danger tw-mb-0">
+                                    <?= _l('project_overview_unbilled_hours'); ?>
+                                    <span class="bold"><?= e($data['logged_time']); ?></span>
+                                </p>
+                                <p class="tw-font-medium tw-text-neutral-600 tw-mb-0">
+                                    <?= e(app_format_money($data['total_money'], $currency)); ?>
+                                </p>
+                            </div>
+                        </div>
                         <hr />
                     <?php } ?>
                 </div>
